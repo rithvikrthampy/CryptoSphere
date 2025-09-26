@@ -2,16 +2,34 @@
 // Reads COINGECKO_API_KEY from env and attaches the correct header.
 
 export default async function handler(req: any, res: any) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end()
+    return
+  }
+
   try {
     const pathParts = req.query.path
     const path = Array.isArray(pathParts) ? pathParts.join('/') : String(pathParts || '')
-    const url = new URL(req.url, `http://${req.headers.host}`)
-    const search = url.search ? url.search : ''
+
+    if (!path) {
+      res.status(400).json({ error: 'Path is required' })
+      return
+    }
+
+    const url = new URL(req.url || '', `http://${req.headers.host}`)
+    const search = url.search || ''
 
     const key = process.env.COINGECKO_API_KEY
     const usePro = process.env.COINGECKO_USE_PRO === 'true'
     let base = usePro ? 'https://pro-api.coingecko.com/api/v3' : 'https://api.coingecko.com/api/v3'
     const target = `${base}/${path}${search}`
+
+    console.log('API Request:', { path, target, usePro: !!usePro, hasKey: !!key })
 
     const headers: Record<string, string> = { 'accept': 'application/json' }
     if (usePro && key) {
@@ -49,14 +67,22 @@ export default async function handler(req: any, res: any) {
     }
     res.status(upstream.status)
     res.setHeader('content-type', upstream.headers.get('content-type') || 'application/json')
+
     // Cache GET responses at the edge to reduce CoinGecko calls
     if (req.method === 'GET') {
       res.setHeader('cache-control', 'public, s-maxage=60, stale-while-revalidate=30')
     } else {
       res.setHeader('cache-control', 'no-store')
     }
+
+    console.log('API Response:', { status: upstream.status, contentType: upstream.headers.get('content-type') })
     res.send(text)
   } catch (err: any) {
-    res.status(500).json({ error: 'Proxy error', detail: err?.message || String(err) })
+    console.error('API Proxy Error:', err)
+    res.status(500).json({
+      error: 'Proxy error',
+      detail: err?.message || String(err),
+      timestamp: new Date().toISOString()
+    })
   }
 }

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getSingleMarketCoin, getTopMarketCoins } from '@/lib/api'
+import { getSingleMarketCoin, getTopMarketCoins, testApiConnection } from '@/lib/api'
 import EnhancedFeaturedCoin from '@/components/EnhancedFeaturedCoin'
 import FeaturedCoinSelector from '@/components/FeaturedCoinSelector'
 import CoinList from '@/components/CoinList'
@@ -15,6 +15,15 @@ export default function Home() {
   const [perPage, setPerPage] = useState(10)
   const [featuredCoinId, setFeaturedCoinId] = useState('vanar-chain')
   const [featuredCoinName, setFeaturedCoinName] = useState('Vanar Chain')
+
+  // Test API connection on mount (only in development)
+  const apiTest = useQuery({
+    queryKey: ['api-test'],
+    queryFn: testApiConnection,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    retry: 1,
+    enabled: process.env.NODE_ENV === 'development' || window.location.hostname.includes('vercel.app')
+  })
 
   // Load featured coin from localStorage on mount
   useEffect(() => {
@@ -180,12 +189,44 @@ export default function Home() {
           </div>
         </div>
 
+        {/* API Test Debug Info (shows only when there are issues) */}
+        {(apiTest.isError || (apiTest.data && !apiTest.data.environment?.hasApiKey)) && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-600" />
+              <div className="flex-1">
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">API Configuration Issue</p>
+                <div className="text-sm mt-2 space-y-1">
+                  {apiTest.data && (
+                    <>
+                      <p className="text-yellow-700 dark:text-yellow-300">
+                        API Key: {apiTest.data.environment?.hasApiKey ? '✓ Present' : '✗ Missing'}
+                      </p>
+                      <p className="text-yellow-700 dark:text-yellow-300">
+                        Environment: {window.location.hostname}
+                      </p>
+                    </>
+                  )}
+                  {apiTest.isError && (
+                    <p className="text-yellow-700 dark:text-yellow-300">
+                      API Test Failed: Check Vercel environment variables
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isError && (
           <div className="error-state rounded-xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="font-medium">Unable to load market data</p>
               <p className="text-sm mt-1 opacity-90">{getErrorMessage()}</p>
+              <div className="text-xs mt-2 opacity-70">
+                API Base: {window.location.origin}/api/coingecko
+              </div>
               <button
                 onClick={() => refetch()}
                 className="btn-secondary mt-3 text-sm px-3 py-1.5"

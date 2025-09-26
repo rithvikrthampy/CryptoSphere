@@ -2,6 +2,19 @@ import type { MarketChart, MarketCoin, CoinDetail, SearchResult, PaginationOptio
 
 const API_BASE = '/api/coingecko'
 
+// Test API connection
+export async function testApiConnection() {
+  try {
+    const response = await fetch('/api/test')
+    const data = await response.json()
+    console.log('API Test Result:', data)
+    return data
+  } catch (error) {
+    console.error('API Test Failed:', error)
+    throw error
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     const res = await fetch(`${API_BASE}${path}`, {
