@@ -39,36 +39,35 @@ export default function Home() {
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['markets-all'],
     queryFn: async () => {
-      // Fetch up to 1,000 coins (4 pages x 250 per page)
-      const MAX_COINS = 1000
+      // Start with just one page to minimize API calls
       const PAGE_SIZE = 250
-      const MAX_PAGES = Math.ceil(MAX_COINS / PAGE_SIZE)
       const allCoins: any[] = []
-      let page = 1
-      let hasMore = true
 
-      while (hasMore && page <= MAX_PAGES) {
-        try {
-          const coins = await getTopMarketCoins({ page, perPage: PAGE_SIZE })
-          if (coins.length === 0) {
-            hasMore = false
-          } else {
-            allCoins.push(...coins)
-            if (allCoins.length >= MAX_COINS) {
-              hasMore = false
-              break
-            }
-            page++
+      try {
+        // First page
+        const coins = await getTopMarketCoins({ page: 1, perPage: PAGE_SIZE })
+        allCoins.push(...coins)
+
+        // Only fetch second page if first was successful and we need more data
+        if (coins.length === PAGE_SIZE) {
+          try {
+            const coins2 = await getTopMarketCoins({ page: 2, perPage: PAGE_SIZE })
+            allCoins.push(...coins2)
+          } catch (error) {
+            console.warn('Second page fetch failed, using first page only:', error)
           }
-        } catch (error) {
-          hasMore = false
         }
+      } catch (error) {
+        console.warn('First page fetch failed:', error)
+        throw error
       }
 
-      return allCoins.slice(0, MAX_COINS)
+      return allCoins.slice(0, 500) // Max 500 coins
     },
-    refetchInterval: 10 * 60 * 1000, // 10 minutes for all data
-    staleTime: 10 * 60 * 1000,
+    refetchInterval: false, // Disable automatic refetching
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour cache
+    retry: 0, // No retries to prevent cascading failures
   })
 
   const [params] = useSearchParams()
@@ -100,19 +99,31 @@ export default function Home() {
     }
   }, [data, q, window, top, currentPage, perPage])
 
-  // Featured coin data
+  // Featured coin data - try to use existing data first
+  const featuredCoinFromList = useMemo(() => {
+    return data?.find(coin => coin.id === featuredCoinId)
+  }, [data, featuredCoinId])
+
   const featuredQuery = useQuery({
     queryKey: ['featured-coin', featuredCoinId],
     queryFn: async () => {
+      // Only fetch if not found in main list
+      if (featuredCoinFromList) {
+        return { coin: featuredCoinFromList, pair: 'USD' as const }
+      }
+
       try {
-        const usdt = await getSingleMarketCoin(featuredCoinId, 'usdt')
-        if (usdt[0]) return { coin: usdt[0], pair: 'USDT' as const }
-      } catch {}
-      const usd = await getSingleMarketCoin(featuredCoinId, 'usd')
-      return { coin: usd[0], pair: 'USD' as const }
+        const usd = await getSingleMarketCoin(featuredCoinId, 'usd')
+        return { coin: usd[0], pair: 'USD' as const }
+      } catch (error) {
+        console.warn('Featured coin fetch failed:', error)
+        throw error
+      }
     },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
+    staleTime: 20 * 60 * 1000, // 20 minutes
+    refetchInterval: false, // Disable auto-refresh
+    retry: 0, // Don't retry
+    enabled: !!featuredCoinId,
   })
   const featuredDisplay = featuredQuery.data?.coin
   const featuredPair = featuredQuery.data?.pair || 'USDT'
@@ -140,7 +151,7 @@ export default function Home() {
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       {/* Market Stats Sidebar - Left Side */}
       <div className="lg:col-span-1 order-2 lg:order-1">
-        <MarketStats />
+        <MarketStats marketData={data} />
       </div>
 
       {/* Main Content - Right Side */}

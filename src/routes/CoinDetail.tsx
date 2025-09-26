@@ -17,15 +17,19 @@ export default function CoinDetail() {
   const detail = useQuery({
     queryKey: ['coin', id],
     queryFn: () => getCoinDetail(id),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
   const chartData = useQuery({
     queryKey: ['chart', id, range],
     queryFn: () => getMarketChart(id, range),
-    refetchInterval: 2 * 60 * 1000, // 2 minutes
-    staleTime: 2 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     enabled: !!id,
+    retry: 1,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
 
   const getErrorMessage = () => {

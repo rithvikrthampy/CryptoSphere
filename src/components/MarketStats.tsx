@@ -5,27 +5,33 @@ import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Flame } from
 import { Link } from 'react-router-dom'
 import { useMemo } from 'react'
 
-export default function MarketStats() {
+interface MarketStatsProps {
+  marketData?: any[]
+}
+
+export default function MarketStats({ marketData }: MarketStatsProps) {
   const globalStats = useQuery({
     queryKey: ['global-stats'],
     queryFn: getGlobalStats,
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // 15 minutes
+    refetchInterval: 15 * 60 * 1000,
+    retry: 1,
   })
 
   const trending = useQuery({
     queryKey: ['trending'],
     queryFn: getTrending,
-    staleTime: 10 * 60 * 1000,
-    refetchInterval: 10 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes - trending changes slowly
+    refetchInterval: 30 * 60 * 1000,
+    retry: 1,
   })
 
-  const allCoins = useQuery({
-    queryKey: ['top-gainers-losers'],
-    queryFn: () => getTopMarketCoins({ page: 1, perPage: 100 }),
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
-  })
+  // Use passed marketData instead of making another API call
+  const allCoins = useMemo(() => ({
+    data: marketData,
+    isLoading: false,
+    isError: false
+  }), [marketData])
 
   const { topGainers, topLosers } = useMemo(() => {
     if (!allCoins.data) return { topGainers: [], topLosers: [] }

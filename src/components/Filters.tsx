@@ -49,7 +49,7 @@ export default function Filters() {
               onClick={() => update('top', t)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                 t === top
-                  ? 'bg-gradient-to-r from-accent to-purple-500 text-white shadow-lg shadow-accent/30'
+                  ? 'bg-accent text-white shadow-lg shadow-accent/30'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-bg-soft dark:text-fg-muted dark:hover:bg-bg-hover'
               }`}
             >

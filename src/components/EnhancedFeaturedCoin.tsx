@@ -29,8 +29,10 @@ export default function EnhancedFeaturedCoin({ coin, pair = 'USDT' }: { coin: Ma
   const chartData = useQuery({
     queryKey: ['featured-chart', coin.id, selectedRange],
     queryFn: () => getMarketChart(coin.id, selectedRange),
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: 2 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // 15 minutes - much longer
+    refetchInterval: false, // Disable auto-refresh to prevent rate limits
+    retry: 0, // Don't retry failed requests
+    enabled: !!coin.id, // Only run when coin ID exists
   })
 
   const isUp = (coin.price_change_percentage_24h ?? 0) >= 0
@@ -231,9 +233,23 @@ export default function EnhancedFeaturedCoin({ coin, pair = 'USDT' }: { coin: Ma
                   <span className="text-sm font-medium">Loading chart...</span>
                 </div>
               </div>
-            ) : chartData.isError ? (
-              <div className="h-full flex items-center justify-center text-gray-400 dark:text-fg-muted">
-                <span className="text-sm">Chart unavailable</span>
+            ) : chartData.isError || chartPrices.length === 0 ? (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-gray-400 dark:text-fg-muted mb-2">
+                    <svg className="w-12 h-12 mx-auto opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-gray-500 dark:text-fg-muted">
+                    Chart temporarily unavailable
+                  </span>
+                  {chartData.error && 'status' in chartData.error && chartData.error.status === 429 && (
+                    <div className="text-xs text-gray-400 dark:text-fg-muted mt-1">
+                      Rate limit reached
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <Line data={chartDataConfig} options={chartOptions} />

@@ -21,21 +21,21 @@ const router = createBrowserRouter([
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      staleTime: 10 * 60 * 1000, // 10 minutes - longer default stale time
+      gcTime: 20 * 60 * 1000, // 20 minutes (formerly cacheTime)
       refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      refetchOnReconnect: false, // Disable reconnect refetch to reduce API calls
       retry: (failureCount, error: any) => {
         if (error?.status === 404) return false
-        if (error?.status === 429) return failureCount < 3 // Retry rate limits up to 3 times
-        return failureCount < 2
+        if (error?.status === 429) return failureCount < 1 // Only retry rate limits once
+        return failureCount < 1 // Reduce overall retry attempts
       },
       retryDelay: (attempt, error) => {
-        // Exponential backoff with longer delays for rate limits
+        // Much longer delays for rate limits
         if (error?.status === 429) {
-          return Math.min(10000 * Math.pow(2, attempt), 60000) // 10s, 20s, 40s, 60s max
+          return Math.min(30000 * Math.pow(2, attempt), 120000) // 30s, 60s, 120s max
         }
-        return Math.min(3000 * attempt, 15000)
+        return Math.min(5000 * attempt, 30000)
       },
     },
   },
