@@ -19,30 +19,23 @@ export default async function handler(req: any, res: any) {
       method: req.method
     })
 
-    // Handle different ways Vercel might pass the catch-all route
-    // In Vercel, catch-all routes like [...path] create a parameter named literally "...path"
-    let pathParts = req.query['...path'] || req.query.path
+    // Get the path from the query parameter (set by Vercel rewrite rule)
+    let path = req.query.path || ''
 
-    // If still no path, try parsing from URL
-    if (!pathParts && req.url) {
+    // If no path provided, try extracting from URL as fallback
+    if (!path && req.url) {
       const urlMatch = req.url.match(/^\/api\/coingecko\/(.+?)(\?|$)/)
       if (urlMatch) {
-        pathParts = urlMatch[1]
+        path = urlMatch[1]
+      } else if (req.url === '/api/coingecko' || req.url === '/api/coingecko/') {
+        path = 'ping'
       }
     }
-
-    // Convert to array if it's a single string
-    if (typeof pathParts === 'string') {
-      pathParts = [pathParts]
-    }
-
-    const path = Array.isArray(pathParts) ? pathParts.join('/') : String(pathParts || '')
 
     console.log('Path parsing:', {
       originalQuery: req.query,
       url: req.url,
-      pathParts,
-      finalPath: path
+      extractedPath: path
     })
 
     if (!path) {
@@ -51,8 +44,7 @@ export default async function handler(req: any, res: any) {
         error: 'Path is required',
         query: req.query,
         url: req.url,
-        pathParts,
-        finalPath: path,
+        extractedPath: path,
         debug: 'Check path extraction logic'
       })
       return
@@ -74,12 +66,44 @@ export default async function handler(req: any, res: any) {
       headers['x-cg-pro-api-key'] = key
     }
 
-    let upstream = await fetch(target, {
-      method: req.method,
-      headers,
-      body: ['GET', 'HEAD'].includes(req.method) ? undefined : req.body,
-      // Do not cache at edge; rely on client caching.
-      cache: 'no-store',
+    console.log('Making upstream request to:', target)
+
+    const requestStart = Date.now()
+    let upstream
+
+    try {
+      upstream = await fetch(target, {
+        method: req.method,
+        headers,
+        body: ['GET', 'HEAD'].includes(req.method) ? undefined : req.body,
+        // Add timeout to prevent hanging
+        signal: AbortSignal.timeout(25000), // 25 seconds
+        cache: 'no-store',
+      })
+    } catch (fetchError: any) {
+      console.error('Upstream fetch failed:', {
+        target,
+        error: fetchError.message,
+        code: fetchError.code,
+        name: fetchError.name
+      })
+
+      res.status(502).json({
+        error: 'Upstream request failed',
+        target,
+        detail: fetchError.message,
+        code: fetchError.code,
+        timestamp: new Date().toISOString()
+      })
+      return
+    }
+
+    const requestTime = Date.now() - requestStart
+    console.log('Upstream response received:', {
+      status: upstream.status,
+      ok: upstream.ok,
+      time: requestTime,
+      contentType: upstream.headers.get('content-type')
     })
 
     // If using pro base with a demo key, CoinGecko returns error_code 10011. Retry on the free base.

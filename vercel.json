@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/coingecko/[...path].ts": {
+    "api/coingecko.ts": {
       "maxDuration": 30
     },
     "api/test.ts": {
@@ -14,9 +14,16 @@
     },
     "api/debug-path.ts": {
       "maxDuration": 10
+    },
+    "api/diagnose.ts": {
+      "maxDuration": 30
+    },
+    "api/test-proxy.ts": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
+    { "source": "/api/coingecko/(.*)", "destination": "/api/coingecko?path=$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
