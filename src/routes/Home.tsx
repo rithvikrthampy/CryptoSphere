@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { getSingleMarketCoin, getTopMarketCoins, testApiConnection } from '@/lib/api'
+import { getSingleMarketCoin, getTopMarketCoins } from '@/lib/api'
 import EnhancedFeaturedCoin from '@/components/EnhancedFeaturedCoin'
 import FeaturedCoinSelector from '@/components/FeaturedCoinSelector'
 import CoinList from '@/components/CoinList'
 import Filters, { TopOpt, WindowOpt } from '@/components/Filters'
 import Pagination from '@/components/Pagination'
-import MarketStats from '@/components/MarketStats'
+// import MarketStats from '@/components/MarketStats' // Temporarily disabled
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AlertCircle, RefreshCw, TrendingUp } from 'lucide-react'
@@ -16,14 +16,6 @@ export default function Home() {
   const [featuredCoinId, setFeaturedCoinId] = useState('vanar-chain')
   const [featuredCoinName, setFeaturedCoinName] = useState('Vanar Chain')
 
-  // Test API connection on mount (only in development)
-  const apiTest = useQuery({
-    queryKey: ['api-test'],
-    queryFn: testApiConnection,
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    retry: 1,
-    enabled: process.env.NODE_ENV === 'development' || window.location.hostname.includes('vercel.app')
-  })
 
   // Load featured coin from localStorage on mount
   useEffect(() => {
@@ -47,32 +39,7 @@ export default function Home() {
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['markets-all'],
-    queryFn: async () => {
-      // Start with just one page to minimize API calls
-      const PAGE_SIZE = 250
-      const allCoins: any[] = []
-
-      try {
-        // First page
-        const coins = await getTopMarketCoins({ page: 1, perPage: PAGE_SIZE })
-        allCoins.push(...coins)
-
-        // Only fetch second page if first was successful and we need more data
-        if (coins.length === PAGE_SIZE) {
-          try {
-            const coins2 = await getTopMarketCoins({ page: 2, perPage: PAGE_SIZE })
-            allCoins.push(...coins2)
-          } catch (error) {
-            console.warn('Second page fetch failed, using first page only:', error)
-          }
-        }
-      } catch (error) {
-        console.warn('First page fetch failed:', error)
-        throw error
-      }
-
-      return allCoins.slice(0, 500) // Max 500 coins
-    },
+    queryFn: () => getTopMarketCoins({ page: 1, perPage: 100 }),
     refetchInterval: false, // Disable automatic refetching
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 60 * 60 * 1000, // 1 hour cache
@@ -163,7 +130,12 @@ export default function Home() {
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       {/* Market Stats Sidebar - Left Side */}
       <div className="lg:col-span-1 order-2 lg:order-1">
-        <MarketStats marketData={data} />
+        <div className="space-y-6">
+          <div className="card p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-fg mb-4">Market Stats</h3>
+            <p className="text-sm text-gray-600 dark:text-fg-muted">Loading market statistics...</p>
+          </div>
+        </div>
       </div>
 
       {/* Main Content - Right Side */}
@@ -189,34 +161,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* API Test Debug Info (shows only when there are issues) */}
-        {(apiTest.isError || (apiTest.data && !apiTest.data.environment?.hasApiKey)) && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-600" />
-              <div className="flex-1">
-                <p className="font-medium text-yellow-800 dark:text-yellow-200">API Configuration Issue</p>
-                <div className="text-sm mt-2 space-y-1">
-                  {apiTest.data && (
-                    <>
-                      <p className="text-yellow-700 dark:text-yellow-300">
-                        API Key: {apiTest.data.environment?.hasApiKey ? '✓ Present' : '✗ Missing'}
-                      </p>
-                      <p className="text-yellow-700 dark:text-yellow-300">
-                        Environment: {window.location.hostname}
-                      </p>
-                    </>
-                  )}
-                  {apiTest.isError && (
-                    <p className="text-yellow-700 dark:text-yellow-300">
-                      API Test Failed: Check Vercel environment variables
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {isError && (
           <div className="error-state rounded-xl p-4 flex items-start gap-3">
@@ -225,7 +169,7 @@ export default function Home() {
               <p className="font-medium">Unable to load market data</p>
               <p className="text-sm mt-1 opacity-90">{getErrorMessage()}</p>
               <div className="text-xs mt-2 opacity-70">
-                API Base: {window.location.origin}/api/coingecko
+                API Base: {typeof window !== 'undefined' ? window.location.origin : ''}/api/coingecko
               </div>
               <button
                 onClick={() => refetch()}

@@ -34,15 +34,22 @@ export default function MarketStats({ marketData }: MarketStatsProps) {
   }), [marketData])
 
   const { topGainers, topLosers } = useMemo(() => {
-    if (!allCoins.data) return { topGainers: [], topLosers: [] }
+    if (!allCoins.data || !Array.isArray(allCoins.data) || allCoins.data.length === 0) {
+      return { topGainers: [], topLosers: [] }
+    }
 
-    const sorted = [...allCoins.data].sort((a, b) =>
-      (b.price_change_percentage_24h ?? 0) - (a.price_change_percentage_24h ?? 0)
-    )
+    try {
+      const sorted = [...allCoins.data].sort((a, b) =>
+        (b.price_change_percentage_24h ?? 0) - (a.price_change_percentage_24h ?? 0)
+      )
 
-    return {
-      topGainers: sorted.slice(0, 3),
-      topLosers: sorted.reverse().slice(0, 3)
+      return {
+        topGainers: sorted.slice(0, 3),
+        topLosers: sorted.reverse().slice(0, 3)
+      }
+    } catch (error) {
+      console.warn('Error processing market data:', error)
+      return { topGainers: [], topLosers: [] }
     }
   }, [allCoins.data])
 
