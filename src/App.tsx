@@ -8,20 +8,23 @@ export default function App() {
   return (
     <div className="min-h-full bg-gray-50 dark:bg-bg transition-colors duration-300">
       <header className="sticky top-0 z-40 border-b border-border-light bg-white/80 backdrop-blur-md dark:bg-bg/80 dark:border-border">
-        <div className="container-max flex h-16 items-center justify-between gap-4">
+        <div className="container-max flex h-16 items-center gap-2 sm:gap-4">
           <Link
             to="/"
-            className="flex items-center gap-2 font-bold text-xl tracking-tight text-gray-900 dark:text-white transition-colors duration-200 hover:text-accent dark:hover:text-accent"
+            className="flex items-center gap-1 sm:gap-2 font-bold text-lg sm:text-xl tracking-tight text-gray-900 dark:text-white transition-colors duration-200 hover:text-accent dark:hover:text-accent shrink-0"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-accent-soft flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-accent to-accent-soft flex items-center justify-center">
+              <span className="text-white font-bold text-xs sm:text-sm">C</span>
             </div>
-            Crypto<span className="text-accent">Sphere</span>
+            <span className="hidden sm:inline">Crypto<span className="text-accent">Sphere</span></span>
+            <span className="sm:hidden text-accent">CS</span>
           </Link>
-          <div className="flex-1 max-w-xl">
+          <div className="flex-1 min-w-0 max-w-xl">
             <SearchDropdown />
           </div>
-          <ThemeToggle />
+          <div className="shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main className="container-max py-8 min-h-screen">

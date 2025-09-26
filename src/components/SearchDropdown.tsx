@@ -84,8 +84,8 @@ export default function SearchDropdown() {
   return (
     <div ref={searchRef} className="relative w-full max-w-xl">
       <div className="relative">
-        <div className="flex gap-2">
-          <div className="flex-1 relative group">
+        <div className="flex gap-2 sm:gap-3">
+          <div className="flex-1 relative group min-w-0">
             <input
               type="text"
               value={query}
@@ -106,7 +106,7 @@ export default function SearchDropdown() {
 
           <button
             onClick={toggleFilters}
-            className={`w-11 h-11 rounded-full border transition-all duration-200 flex items-center justify-center relative ${
+            className={`w-11 h-11 rounded-full border transition-all duration-200 flex items-center justify-center relative shrink-0 ${
               selectedFilter !== 'all'
                 ? 'border-accent bg-accent/10 text-accent'
                 : 'border-gray-200 bg-white text-gray-400 hover:text-accent hover:border-accent/50 dark:bg-bg-soft dark:border-gray-600 dark:text-fg-muted dark:hover:text-accent dark:hover:border-accent/50'
@@ -129,17 +129,17 @@ export default function SearchDropdown() {
               exit={{ opacity: 0, y: 8 }}
               className="absolute top-full left-0 right-0 z-[60] mt-2 rounded-xl border border-border-light bg-white/95 backdrop-blur-sm shadow-lg dark:bg-bg-card/95 dark:border-border"
             >
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-2">
+              <div className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-gray-700 dark:text-fg">Search Filters</span>
                   <button
                     onClick={() => setShowFilters(false)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-bg-hover rounded"
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-bg-hover rounded shrink-0"
                   >
                     <X size={16} className="text-gray-400 dark:text-fg-muted" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {SEARCH_FILTERS.map((filter) => (
                     <button
                       key={filter.value}
@@ -147,16 +147,22 @@ export default function SearchDropdown() {
                         setSelectedFilter(filter.value)
                         setShowFilters(false)
                       }}
-                      className={`p-2 text-left rounded-lg transition-all duration-200 ${
+                      className={`p-2 text-left rounded-lg transition-all duration-200 min-w-0 ${
                         selectedFilter === filter.value
                           ? 'bg-accent text-white'
                           : 'hover:bg-gray-50 dark:hover:bg-bg-hover text-gray-700 dark:text-fg'
                       }`}
                       title={filter.description}
                     >
-                      <div className="font-medium text-sm">{filter.label}</div>
+                      <div className="font-medium text-sm truncate">{filter.label}</div>
                       {selectedFilter === filter.value && (
-                        <div className="text-xs opacity-90 mt-1">{filter.description}</div>
+                        <div className="text-xs opacity-90 mt-1 overflow-hidden" style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
+                        }}>
+                          {filter.description}
+                        </div>
                       )}
                     </button>
                   ))}
@@ -178,12 +184,12 @@ export default function SearchDropdown() {
           >
             <div className="p-2">
               <div className="flex items-center justify-between px-3 py-2 text-xs font-medium text-gray-500 dark:text-fg-muted uppercase tracking-wide">
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={12} />
-                  Search Results
+                <div className="flex items-center gap-2 min-w-0">
+                  <TrendingUp size={12} className="shrink-0" />
+                  <span className="truncate">Search Results</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span>{SEARCH_FILTERS.find(f => f.value === selectedFilter)?.label}</span>
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <span className="hidden sm:inline">{SEARCH_FILTERS.find(f => f.value === selectedFilter)?.label}</span>
                   {selectedFilter !== 'all' && (
                     <span className="bg-accent/20 text-accent px-1.5 py-0.5 rounded text-[10px]">
                       {filteredResults.length}
