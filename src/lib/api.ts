@@ -17,14 +17,32 @@ const API_BASE = '/api/coingecko'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const url = `${API_BASE}${path}`
+    console.log('API Request:', { url, method: init?.method || 'GET' })
+
+    const res = await fetch(url, {
       headers: { 'accept': 'application/json' },
       ...init,
+    })
+
+    console.log('API Response:', {
+      url,
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok
     })
 
     if (!res.ok) {
       const text = await res.text().catch(() => '')
       let errorMessage = `API Error ${res.status}`
+
+      console.error('API Error Details:', {
+        url,
+        status: res.status,
+        statusText: res.statusText,
+        responseText: text.substring(0, 500),
+        headers: Object.fromEntries(res.headers.entries())
+      })
 
       // Check if we got HTML instead of JSON (deployment issue)
       if (text.includes('<!doctype') || text.includes('<!DOCTYPE')) {
@@ -54,6 +72,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const json = await res.json()
     return json as T
   } catch (error: any) {
+    console.error('API Request Exception:', {
+      url: `${API_BASE}${path}`,
+      error: error.message,
+      name: error.name,
+      status: error.status
+    })
+
     // Handle network errors or JSON parsing errors
     if (error.name === 'SyntaxError' && error.message.includes('Unexpected token')) {
       const deploymentError = Object.assign(

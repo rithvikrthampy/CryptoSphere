@@ -8,6 +8,12 @@
     },
     "api/health.ts": {
       "maxDuration": 10
+    },
+    "api/test-coingecko.ts": {
+      "maxDuration": 30
+    },
+    "api/debug-path.ts": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
