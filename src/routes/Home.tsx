@@ -5,7 +5,7 @@ import FeaturedCoinSelector from '@/components/FeaturedCoinSelector'
 import CoinList from '@/components/CoinList'
 import Filters, { TopOpt, WindowOpt } from '@/components/Filters'
 import Pagination from '@/components/Pagination'
-// import MarketStats from '@/components/MarketStats' // Temporarily disabled
+import MarketStats from '@/components/MarketStats'
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AlertCircle, RefreshCw, TrendingUp } from 'lucide-react'
@@ -136,12 +136,7 @@ export default function Home() {
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       {/* Market Stats Sidebar - Left Side */}
       <div className="lg:col-span-1 order-2 lg:order-1">
-        <div className="space-y-6">
-          <div className="card p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-fg mb-4">Market Stats</h3>
-            <p className="text-sm text-gray-600 dark:text-fg-muted">Loading market statistics...</p>
-          </div>
-        </div>
+        <MarketStats marketData={data} />
       </div>
 
       {/* Main Content - Right Side */}

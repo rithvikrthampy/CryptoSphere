@@ -13,11 +13,18 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    console.log('Request received:', {
+      url: req.url,
+      query: req.query,
+      method: req.method
+    })
+
     const pathParts = req.query.path
     const path = Array.isArray(pathParts) ? pathParts.join('/') : String(pathParts || '')
 
     if (!path) {
-      res.status(400).json({ error: 'Path is required' })
+      console.log('No path provided')
+      res.status(400).json({ error: 'Path is required', query: req.query })
       return
     }
 
@@ -29,7 +36,7 @@ export default async function handler(req: any, res: any) {
     let base = usePro ? 'https://pro-api.coingecko.com/api/v3' : 'https://api.coingecko.com/api/v3'
     const target = `${base}/${path}${search}`
 
-    console.log('API Request:', { path, target, usePro: !!usePro, hasKey: !!key })
+    console.log('API Request:', { path, target, usePro: !!usePro, hasKey: !!key, search })
 
     const headers: Record<string, string> = { 'accept': 'application/json' }
     if (usePro && key) {
