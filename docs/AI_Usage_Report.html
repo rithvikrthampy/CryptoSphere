@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Assistance & Build Report — Crypto Sphere</title>
+  <style>
+    :root { --accent: #4f9cff; --text: #111827; --muted: #4b5563; }
+    html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif; color: var(--text); }
+    .page { box-sizing: border-box; max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    h2 { font-size: 18px; margin: 24px 0 8px; color: var(--accent); }
+    h3 { font-size: 16px; margin: 18px 0 6px; }
+    p { line-height: 1.6; margin: 8px 0; }
+    ul { margin: 8px 0 8px 20px; }
+    li { margin: 4px 0; }
+    .muted { color: var(--muted); }
+    .meta { margin-bottom: 16px; color: var(--muted); font-size: 13px; }
+    .tag { display: inline-block; padding: 2px 8px; font-size: 12px; border: 1px solid #e5e7eb; border-radius: 999px; margin-right: 6px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+    .callout { background: #f3f4f6; padding: 12px 14px; border-radius: 10px; border: 1px solid #e5e7eb; }
+    .break { page-break-before: always; margin-top: 24px; }
+    @page { size: A4; margin: 14mm; }
+    @media print { body { background: #fff; } .page { padding: 0; } a { color: black; text-decoration: none; } }
+  </style>
+  <meta name="description" content="Two-page summary of AI usage, manual interventions, build steps, and outcomes for the Crypto Sphere SPA project." />
+  <meta name="author" content="" />
+</head>
+<body>
+  <section class="page">
+    <h1>AI Assistance & Build Report — Crypto Sphere</h1>
+    <div class="meta">Project: Responsive crypto prices SPA using CoinGecko • Stack: React, Vite, TypeScript, Tailwind, React Query, Chart.js • Deployment: Vercel</div>
+    <div class="callout"><strong>Build Note:</strong> This project was built primarily via AI prompting; very minimal manual coding was required.</div>
+
+    <h2>1) Executive Summary</h2>
+    <p>
+      Crypto Sphere is a responsive single‑page application showing live cryptocurrency data from CoinGecko. It features a
+      homepage markets table (Price, 1h, 24h, 7d, 24h Volume, Market Cap, 7‑day sparkline), a prominently featured
+      <strong>VANRY/USDT</strong> card, interactive coin detail charts with multiple ranges, search/filters, and a dark/light theme.
+      The build combined AI-assisted scaffolding and component generation with targeted manual work for configuration and deployment.
+    </p>
+
+    <h2>2) Tools & Roles</h2>
+    <div class="grid">
+      <div>
+        <h3>AI Tools</h3>
+        <ul>
+          <li><strong>GPT Codex</strong> — initial project skeleton and structure decisions.</li>
+          <li><strong>Claude Code CLI</strong> — code generation and optimization passes for components and flows.</li>
+          <li><strong>Codex</strong> — README creation, code analysis, API proxy logic and rate‑limit mitigations.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Platforms</h3>
+        <ul>
+          <li><strong>CoinGecko</strong> — free API for markets, detail, and charts.</li>
+          <li><strong>Vercel</strong> — serverless proxy + static hosting (production).</li>
+          <li><strong>GitHub</strong> — source control and CI entry point for Vercel.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>3) What AI Produced</h2>
+    <ul>
+      <li>Vite + React + TypeScript scaffold and Tailwind setup; routing and React Query boilerplate.</li>
+      <li>API layer with a Vercel <em>serverless proxy</em> to keep the CoinGecko key private; dev proxy in Vite.</li>
+      <li>Core screens and components:
+        <ul>
+          <li>Homepage with featured VANRY pair and markets table (required columns).</li>
+          <li>Search bar, quick filters, pagination, and sparkline rendering.</li>
+          <li>Coin detail page with chart ranges (24H, 7D, 1M, 3M, 1Y, Max).</li>
+          <li>Dark/light theme toggle, skeleton loaders, and UI animations.</li>
+          <li>Market overview sidebar (global stats, trending, gainers/losers).</li>
+        </ul>
+      </li>
+      <li>README authoring and troubleshooting guidance (rate limits, Pro vs free base URL).</li>
+      <li>Code quality passes: types, formatting helpers, and error handling for 429/404/5xx.</li>
+    </ul>
+
+    <h2>4) Manual Interventions</h2>
+    <ul>
+      <li>Created a CoinGecko API key and provisioned environment variables:</li>
+    </ul>
+    <div class="callout"><code>COINGECKO_API_KEY=...<br/>COINGECKO_USE_PRO=false</code></div>
+    <ul>
+      <li>Set up <strong>.env</strong> locally and configured Vercel Project Env Vars.</li>
+      <li>Resolved Vercel deployment issues by prompting and applying config fixes (proxy routing, SPA fallback).</li>
+      <li>Pushed code to GitHub and connected the repo to Vercel for automatic builds and deploys.</li>
+      <li>Tuned rate‑limit behavior: reduced refresh intervals, capped markets to 1,000 coins, limited sidebar lists to 3 items.</li>
+    </ul>
+
+    <h2>5) Architecture Overview</h2>
+    <ul>
+      <li><strong>UI</strong>: React + Tailwind, Framer Motion animations, dark/light theme via class toggle + localStorage.</li>
+      <li><strong>Data</strong>: TanStack Query with caching and background refresh; compact formatters for currency and numbers.</li>
+      <li><strong>Charts</strong>: Chart.js via react‑chartjs‑2; row sparklines via lightweight inline SVG.</li>
+      <li><strong>Proxy</strong>: Vercel function at <code>/api/coingecko/*</code> with optional Pro header and <em>s‑maxage</em> caching.</li>
+      <li><strong>Dev</strong>: Vite proxy forwards to correct CoinGecko base (free vs pro) based on env flags.</li>
+    </ul>
+
+    <h2>6) Requirement Coverage</h2>
+    <ul>
+      <li><span class="tag">Done</span> Homepage with list of coins, prices, % change (and 1h/7d) + sparkline.</li>
+      <li><span class="tag">Done</span> Featured first: <strong>VANRY/USDT</strong> (fallback: USD).</li>
+      <li><span class="tag">Done</span> Clicking a coin → detail view with interactive chart ranges.</li>
+      <li><span class="tag">Done</span> Search + filters (gainers/losers, window 24h/7d), pagination.</li>
+      <li><span class="tag">Done</span> Professional UI (Tailwind) + animations; dark/light toggle (bonus).</li>
+      <li><span class="tag">Done</span> Documentation updated in README; this report documents AI vs manual work.</li>
+    </ul>
+  </section>
+
+  <section class="page break">
+    <h2>7) Build Timeline (Condensed)</h2>
+    <ul>
+      <li>Scaffolded Vite + React (TS), Tailwind, routing, and React Query.</li>
+      <li>Implemented API proxies (Vite dev + Vercel serverless) with Pro/free auto‑selection and fallback.</li>
+      <li>Built homepage: featured VANRY pair card, markets table, search/filters, pagination.</li>
+      <li>Added coin detail page: stats, interactive chart with multiple ranges.</li>
+      <li>Polished UI: animations, skeletons, dark/light theme, responsive layout.</li>
+      <li>Mitigated rate limits: increased cache, reduced refresh, capped to 1,000 coins, trimmed sidebar to 3 items each.</li>
+      <li>Deployment: pushed to GitHub, configured Vercel env, resolved routing and proxy issues.</li>
+    </ul>
+
+    <h2>8) Prompts & AI Contributions (Summary)</h2>
+    <p class="muted">Examples of tasks driven by AI prompts; code was reviewed and aligned with project needs.</p>
+    <ul>
+      <li>“Scaffold a React + Vite + TS app with Tailwind and React Query; add Router and Chart.js.”</li>
+      <li>“Create a Vercel serverless function to proxy CoinGecko with an API key, and a Vite dev proxy.”</li>
+      <li>“Homepage components: featured VANRY/USDT card with sparkline, markets table with columns (Price, 1h, 24h, 7d, Volume, Cap, Sparkline).”</li>
+      <li>“Detail page with chart ranges (24H/7D/30D/90D/1Y/Max), compact currency/number formatting, loading states.”</li>
+      <li>“Mitigate CoinGecko 429: caching, lower refetch intervals, optional pro header, s‑maxage on serverless.”</li>
+      <li>“Write README and troubleshooting notes tailored to free/demo vs Pro keys.”</li>
+    </ul>
+
+    <h2>9) Manual Adjustments (Detail)</h2>
+    <ul>
+      <li>Provisioned API key in CoinGecko, created <code>.env</code>, and set Vercel Project Env Vars.</li>
+      <li>Investigated Vercel deployment issues (rewrites, SPA fallback) and applied fixes.</li>
+      <li>Balanced rates vs features: capped markets at 1,000 coins, limited sidebar lists to 3, adjusted stale times.</li>
+      <li>Verified VANRY USDT availability and implemented USD fallback behavior with clear labeling.</li>
+      <li>Repository hygiene: ensured <code>.env</code> and <code>node_modules</code> are git‑ignored; pushed to GitHub and linked to Vercel.</li>
+    </ul>
+
+    <h2>10) Next Steps (Optional)</h2>
+    <ul>
+      <li>Pin featured coin row at the top of the table (in addition to the featured card).</li>
+      <li>Add column sorting and export/CSV for the markets table.</li>
+      <li>Strengthen offline caching; add prefetch for detail pages.</li>
+      <li>Consider server‑side caching layers (KV/Edge) if traffic grows under free‑tier limits.</li>
+    </ul>
+
+    <h2>Appendix — How to Export as PDF</h2>
+    <ol>
+      <li>Open this file in your browser: <code>docs/AI_Usage_Report.html</code></li>
+      <li>Use File → Print (or Ctrl/Cmd+P) → “Save as PDF”.</li>
+      <li>Paper size: A4 or Letter; Margins: Default; Background graphics: On (optional).</li>
+    </ol>
+  </section>
+</body>
+</html>

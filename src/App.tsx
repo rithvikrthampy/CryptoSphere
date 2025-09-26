@@ -8,7 +8,7 @@ export default function App() {
   return (
     <div className="min-h-full bg-gray-50 dark:bg-bg transition-colors duration-300">
       <header className="sticky top-0 z-40 border-b border-border-light bg-white/80 backdrop-blur-md dark:bg-bg/80 dark:border-border">
-        <div className="container-max flex h-16 items-center gap-2 sm:gap-4">
+        <div className="container-max flex h-16 w-full items-center gap-2 sm:gap-4">
           <Link
             to="/"
             className="flex items-center gap-1 sm:gap-2 font-bold text-lg sm:text-xl tracking-tight text-gray-900 dark:text-white transition-colors duration-200 hover:text-accent dark:hover:text-accent shrink-0"
@@ -22,7 +22,7 @@ export default function App() {
           <div className="flex-1 min-w-0 max-w-xl">
             <SearchDropdown />
           </div>
-          <div className="shrink-0">
+          <div className="ml-2 sm:ml-4 md:ml-auto shrink-0">
             <ThemeToggle />
           </div>
         </div>
@@ -53,4 +53,3 @@ export default function App() {
     </div>
   )
 }
-

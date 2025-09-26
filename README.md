@@ -1,4 +1,6 @@
-# CryptoWatch — Crypto Prices SPA
+# Crypto Sphere — Crypto Prices SPA
+
+> Built primarily via AI prompting; very minimal manual coding was required.
 
 A responsive, minimal, and sleek single‑page app for live cryptocurrency data powered by CoinGecko. It highlights a featured coin (defaults to VANRY/USDT), provides a rich markets table with sorting-friendly fields, search and filters, a detailed coin page with interactive charts, and dark/light mode with tasteful animations.
 
@@ -100,4 +102,3 @@ A responsive, minimal, and sleek single‑page app for live cryptocurrency data 
 ## Notes
 - `.gitignore` excludes `.env`, `node_modules`, `dist`, and Vercel metadata.
 - Set `COINGECKO_API_KEY` in your Vercel project before production deploys.
-
