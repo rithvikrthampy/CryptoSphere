@@ -19,12 +19,42 @@ export default async function handler(req: any, res: any) {
       method: req.method
     })
 
-    const pathParts = req.query.path
+    // Handle different ways Vercel might pass the catch-all route
+    // In Vercel, catch-all routes like [...path] create a parameter named literally "...path"
+    let pathParts = req.query['...path'] || req.query.path
+
+    // If still no path, try parsing from URL
+    if (!pathParts && req.url) {
+      const urlMatch = req.url.match(/^\/api\/coingecko\/(.+?)(\?|$)/)
+      if (urlMatch) {
+        pathParts = urlMatch[1]
+      }
+    }
+
+    // Convert to array if it's a single string
+    if (typeof pathParts === 'string') {
+      pathParts = [pathParts]
+    }
+
     const path = Array.isArray(pathParts) ? pathParts.join('/') : String(pathParts || '')
 
+    console.log('Path parsing:', {
+      originalQuery: req.query,
+      url: req.url,
+      pathParts,
+      finalPath: path
+    })
+
     if (!path) {
-      console.log('No path provided')
-      res.status(400).json({ error: 'Path is required', query: req.query })
+      console.log('No path provided after parsing')
+      res.status(400).json({
+        error: 'Path is required',
+        query: req.query,
+        url: req.url,
+        pathParts,
+        finalPath: path,
+        debug: 'Check path extraction logic'
+      })
       return
     }
 
