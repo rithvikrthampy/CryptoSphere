@@ -143,6 +143,9 @@ export default function Home() {
       if (error.status === 429) {
         return 'Rate limit reached. Data will refresh automatically in a few minutes.'
       }
+      if (error.status === 503 && (error as any).isDeploymentIssue) {
+        return 'API service is currently deploying. Please wait a few minutes and try again.'
+      }
     }
     return error?.message || 'Failed to load market data. Please try again.'
   }

@@ -3,31 +3,54 @@ import type { MarketChart, MarketCoin, CoinDetail, SearchResult, PaginationOptio
 const API_BASE = '/api/coingecko'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'accept': 'application/json' },
-    ...init,
-  })
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'accept': 'application/json' },
+      ...init,
+    })
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    let errorMessage = `API Error ${res.status}`
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      let errorMessage = `API Error ${res.status}`
 
-    if (res.status === 429) {
-      errorMessage = 'Rate limit exceeded. Please wait a moment before trying again.'
-    } else if (res.status >= 500) {
-      errorMessage = 'Server error. Please try again later.'
-    } else if (res.status === 404) {
-      errorMessage = 'Resource not found.'
+      // Check if we got HTML instead of JSON (deployment issue)
+      if (text.includes('<!doctype') || text.includes('<!DOCTYPE')) {
+        errorMessage = 'API service temporarily unavailable. Please try again later.'
+        const error = Object.assign(
+          new Error(errorMessage),
+          { status: 503, body: text, isDeploymentIssue: true }
+        )
+        throw error
+      }
+
+      if (res.status === 429) {
+        errorMessage = 'Rate limit exceeded. Please wait a moment before trying again.'
+      } else if (res.status >= 500) {
+        errorMessage = 'Server error. Please try again later.'
+      } else if (res.status === 404) {
+        errorMessage = 'Resource not found.'
+      }
+
+      const error = Object.assign(
+        new Error(errorMessage),
+        { status: res.status, body: text }
+      )
+      throw error
     }
 
-    const error = Object.assign(
-      new Error(errorMessage),
-      { status: res.status, body: text }
-    )
+    const json = await res.json()
+    return json as T
+  } catch (error: any) {
+    // Handle network errors or JSON parsing errors
+    if (error.name === 'SyntaxError' && error.message.includes('Unexpected token')) {
+      const deploymentError = Object.assign(
+        new Error('API service is currently unavailable. Please try again later.'),
+        { status: 503, isDeploymentIssue: true }
+      )
+      throw deploymentError
+    }
     throw error
   }
-
-  return res.json() as Promise<T>
 }
 
 export function getTopMarketCoins(pagination?: PaginationOptions) {
