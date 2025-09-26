@@ -19,14 +19,16 @@ export default function Home() {
 
   // Load featured coin from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('featuredCoin')
-    if (saved) {
-      try {
-        const { id, name } = JSON.parse(saved)
-        setFeaturedCoinId(id)
-        setFeaturedCoinName(name)
-      } catch {
-        // Keep default values if parsing fails
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('featuredCoin')
+      if (saved) {
+        try {
+          const { id, name } = JSON.parse(saved)
+          setFeaturedCoinId(id)
+          setFeaturedCoinName(name)
+        } catch {
+          // Keep default values if parsing fails
+        }
       }
     }
   }, [])
@@ -34,7 +36,9 @@ export default function Home() {
   const handleFeaturedCoinChange = (coinId: string, coinName: string) => {
     setFeaturedCoinId(coinId)
     setFeaturedCoinName(coinName)
-    localStorage.setItem('featuredCoin', JSON.stringify({ id: coinId, name: coinName }))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('featuredCoin', JSON.stringify({ id: coinId, name: coinName }))
+    }
   }
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -106,7 +110,9 @@ export default function Home() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 
   const handlePerPageChange = (newPerPage: number) => {
@@ -169,7 +175,7 @@ export default function Home() {
               <p className="font-medium">Unable to load market data</p>
               <p className="text-sm mt-1 opacity-90">{getErrorMessage()}</p>
               <div className="text-xs mt-2 opacity-70">
-                API Base: {typeof window !== 'undefined' ? window.location.origin : ''}/api/coingecko
+                API Base: /api/coingecko
               </div>
               <button
                 onClick={() => refetch()}

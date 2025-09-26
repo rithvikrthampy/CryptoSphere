@@ -6,21 +6,32 @@ function getSystemPrefersDark() {
 }
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState<boolean>(() => {
-    const saved = localStorage.getItem('theme')
-    if (saved === 'dark') return true
-    if (saved === 'light') return false
-    return getSystemPrefersDark()
-  })
+  const [dark, setDark] = useState<boolean>(false)
+
+  // Initialize theme after component mounts to avoid SSR issues
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme')
+      if (saved === 'dark') {
+        setDark(true)
+      } else if (saved === 'light') {
+        setDark(false)
+      } else {
+        setDark(getSystemPrefersDark())
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    const root = document.documentElement
-    if (dark) {
-      root.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      root.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
+    if (typeof window !== 'undefined') {
+      const root = document.documentElement
+      if (dark) {
+        root.classList.add('dark')
+        localStorage.setItem('theme', 'dark')
+      } else {
+        root.classList.remove('dark')
+        localStorage.setItem('theme', 'light')
+      }
     }
   }, [dark])
 
